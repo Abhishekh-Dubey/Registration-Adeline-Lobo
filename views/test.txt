@@ -1,0 +1,343 @@
+about.jsx code
+
+import React, { useEffect } from "react";
+import "./About.css";
+import { Container, Card } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import img from "../../img/myPic.png";
+export default function About() {
+  const navigate = useNavigate();
+  const CallAboutPages = async () => {
+    try {
+      const res = await fetch("/about", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      const textResponse = await res.text(); // Read the response body as text
+      console.log("Raw response:", textResponse); // Log the raw response
+
+      if (!res.ok) {
+        // Check if the response status is not OK (e.g., 401 Unauthorized)
+        console.log("Error status:", res.status);
+        throw new Error(textResponse); // Throw an error with the response body
+      }
+
+      const data = await res.json(); // Parse the response as JSON
+      console.log("Parsed data:", data);
+
+      // Continue with your logic to handle the successful response
+    } catch (err) {
+      console.log("Error:", err);
+      navigate("/login");
+    }
+  };
+  useEffect(() => {
+    CallAboutPages();
+  }, []);
+  const details = [
+    {
+      dataName: "User ID",
+      data: "0943281",
+    },
+    {
+      dataName: "Name",
+      data: "Abhishekh",
+    },
+    {
+      dataName: "Email ID",
+      data: "Avskd@gmail.com",
+    },
+    {
+      dataName: "Phone No",
+      data: "9834705",
+    },
+    {
+      dataName: "Profession",
+      data: "Developer",
+    },
+  ];
+  return (
+    <>
+      <Container className="about-container ">
+        <Card className="px-4 about-col bg-dark text-white">
+          <form method="GET" className="about-form">
+            <div className="row">
+              <div className="col-md-4">
+                <div className="img-conteiner">
+                  <img src={img} alt="no_image" className="img-con" />
+                </div>
+              </div>
+              <div className="col-md-6 left_container">
+                <h5>Abhishekh Dubey</h5>
+                <h6>Web Developer</h6>
+                <p className="profile-rating mt-3 mb-5">
+                  RANKINGS : <span>1/10</span>
+                </p>
+
+                <p>About</p>
+
+                <hr className="about-nav-hr" />
+              </div>
+              <div className="col-md-2">
+                <input
+                  type="submit"
+                  className="profile-edit-btn "
+                  value="edit "
+                />
+              </div>
+              <div className="row">
+                <div className="col-md-4">
+                  <div className="my-links">
+                    <a
+                      href="https://www.youtube.com/channel/UCusuoYR_KRO6OjaZ8304bEQ"
+                      target="_abhi"
+                    >
+                      youtube
+                    </a>
+                    <br />
+                    <a
+                      href="https://www.youtube.com/channel/UCusuoYR_KRO6OjaZ8304bEQ"
+                      target="_abhi"
+                    >
+                      Instagram
+                    </a>
+                    <br />
+                    <a
+                      href="https://www.youtube.com/channel/UCusuoYR_KRO6OjaZ8304bEQ"
+                      target="_abhi"
+                    >
+                      FaceBook
+                    </a>
+                    <br />
+                    <a
+                      href="https://www.youtube.com/channel/UCusuoYR_KRO6OjaZ8304bEQ"
+                      target="_abhi"
+                    >
+                      LinkedIn
+                    </a>
+                    <br />
+                  </div>
+                </div>
+                <div className="col-md-8 pl-5">
+                  <div className="tab-content ptofile-tab" id="myTabContent">
+                    <div
+                      className="tab-pane fade show active"
+                      id="about"
+                      role="tabpanel"
+                      aria-labelledby="about-tab"
+                    >
+                      {details.map((item, index) => {
+                        return (
+                          <div className="row about-details " key={index}>
+                            <div className="col-md-4">
+                              <label>{item.dataName}</label>
+                            </div>
+                            <div className="col-md-6">
+                              <p>{item.data}</p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+          <div></div>
+        </Card>
+      </Container>
+    </>
+  );
+}
+
+sarver.js code 
+
+
+const express = require("express");
+
+const dotenv = require("dotenv");
+const { connect } = require("mongoose");
+const app = express();
+
+// env connection
+dotenv.config({ path: "./config.env" });
+const PORT = process.env.PORT;
+// databaase connection
+require("./db/MongoConnet");
+// const user = require("./moduls/userSchema");
+
+// router connection
+app.use(express.json());
+app.use(require("./Routers/Rout"));
+
+// middleware
+// const middleware = (req, res, next) => {
+//   console.log("hello my middleware");
+//   next();
+// };
+// app.get("/", (req, res) => res.send("hello ,Wellcome to home page"));
+// app.get("/about", middleware, (req, res) =>
+//   res.send("hello ,Wellcome to about page")
+// );
+app.get("/contect", (req, res) => res.send("hello ,Wellcome to contect page"));
+app.get("/signin", (req, res) => res.send("hello ,Wellcome to singin page"));
+app.get("/singup", (req, res) => res.send("hello ,Wellcome to singup page"));
+// app.get("*", (req, res) => res.send("404 error ,Page not found"));
+app.listen(PORT, () => console.log(`I am running on port ${PORT}....`));
+
+
+router.js code 
+
+router.get("/about", authenticate, (req, res) => {
+  console.log(`Hello my About`);
+  if (!req.rootUser) {
+    // If the request is unauthorized (no user data available), send a JSON response with an error message
+    return res.status(401).json({ error: "Unauthorized: No token provided" });
+  }
+
+  // Assuming req.rootUser contains the data you want to send in response
+  res.json(req.rootUser);
+});
+
+authenticate.js code
+
+const jwt = require("jsonwebtoken");
+const User = require("../moduls/userSchema");
+
+const verifyToken = (token) => {
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY);
+    return decoded;
+  } catch (err) {
+    return null; // Return null if the token is invalid or has expired
+  }
+};
+const authenticate = async (req, res, next) => {
+  try {
+    const token = req.cookies.jwtoken;
+    const verifyTokenResult = verifyToken(token);
+
+    if (!verifyTokenResult) {
+      throw new Error("User not Found");
+    }
+
+    const rootUser = await User.findOne({
+      _id: verifyTokenResult._id,
+      "tokens.token": token,
+    });
+
+    if (!rootUser) {
+      throw new Error("User not Found");
+    } else {
+      req.token = token;
+      req.rootUser = rootUser;
+      req.userID = rootUser._id;
+      next();
+    }
+  } catch (err) {
+    // Send error as JSON response
+    res.status(401).json({ error: "Unauthorized: No token provided" });
+    console.log(err);
+  }
+};
+
+module.exports = authenticate;
+
+
+
+UserSchema.js code
+
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+//----------------- DataBase mongoose Schema------------//
+const UserSchema = new mongoose.Schema({
+  name: {
+    type: String,
+    required: true,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
+  phone: {
+    type: Number,
+    required: true,
+  },
+  work: {
+    type: String,
+    required: true,
+  },
+  password: {
+    type: String,
+    required: true,
+  },
+  cpassword: {
+    type: String,
+    required: true,
+  },
+  tokens: [
+    {
+      token: {
+        type: String,
+        required: true,
+      },
+    },
+  ],
+});
+
+// --------bcrypt.hash for the secure the password-------//
+UserSchema.pre("save", async function (next) {
+  // console.log("hi from inside");
+  if (this.isModified("password")) {
+    this.password = await bcrypt.hash(this.password, 12);
+    this.cpassword = await bcrypt.hash(this.cpassword, 12);
+  }
+  next();
+});
+
+// ------------generating Token------------------//
+UserSchema.methods.generateAuthToken = async function () {
+  try {
+    let tokenJwt = jwt.sign({ _id: this._id }, process.env.SECRET_KEY);
+    this.tokens = this.tokens.concat({ token: tokenJwt });
+    await this.save();
+    return tokenJwt;
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+const User = mongoose.model("User", UserSchema);
+module.exports = User;
+
+
+but i still getting this error
+
+About.jsx:10     GET http://localhost:3000/about 401 (Unauthorized)
+CallAboutPages @ About.jsx:10
+(anonymous) @ About.jsx:38
+commitHookEffectListMount @ react-dom.development.js:23150
+invokePassiveEffectMountInDEV @ react-dom.development.js:25154
+invokeEffectsInDev @ react-dom.development.js:27351
+commitDoubleInvokeEffectsInDEV @ react-dom.development.js:27330
+flushPassiveEffectsImpl @ react-dom.development.js:27056
+flushPassiveEffects @ react-dom.development.js:26984
+commitRootImpl @ react-dom.development.js:26935
+commitRoot @ react-dom.development.js:26682
+performSyncWorkOnRoot @ react-dom.development.js:26117
+flushSyncCallbacks @ react-dom.development.js:12042
+(anonymous) @ react-dom.development.js:25651
+About.jsx:20 Raw response: {"error":"Unauthorized: No token provided"}
+About.jsx:24 Error status: 401
+About.jsx:33 Error: Error: {"error":"Unauthorized: No token provided"}
+    at CallAboutPages (About.jsx:25:1)
+
+how to solve this error
