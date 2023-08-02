@@ -1,38 +1,43 @@
 import React, { useEffect, useState } from "react";
-import { Col, Button, Row, Container, Card, Form } from "react-bootstrap";
+import {
+  Col,
+  Button,
+  Row,
+  Container,
+  Card,
+  Form,
+  Modal,
+} from "react-bootstrap";
 // import "./Home.css";
-
-const stateCityData = {
-  states: [
-    {
-      name: "State 1",
-      cities: ["City 1", "City 2", "City 3"],
-    },
-    {
-      name: "State 2",
-      cities: ["City 4", "City 5", "City 6"],
-    },
-    // Add more states and cities as needed
-  ],
-};
+import { StateCityData } from "./StateCityData";
 
 export default function Home() {
-  const [signUpUser, setSignUpUser] = useState({
+  const [regUser, setRegUser] = useState({
     name: "",
     phone: "",
     city: "",
     state: "",
   });
-  const [data, setData] = useState([]);
+  const [getUpdate, setUpdate] = useState({
+    name: "",
+    phone: "",
+    city: "",
+    state: "",
+  });
 
+  const [dataUpdate, setDataUpdate] = useState([]);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editItemId, setEditItemId] = useState(null);
+  const [data, setData] = useState([]);
+  // register/insert deta start
   const handleInput = (e) => {
     const { name, value } = e.target;
-    setSignUpUser({ ...signUpUser, [name]: value });
+    setRegUser({ ...regUser, [name]: value });
   };
 
   const PostData = async (e) => {
     e.preventDefault();
-    const { name, phone, city, state } = signUpUser;
+    const { name, phone, city, state } = regUser;
     const res = await fetch("/register", {
       method: "POST",
       headers: {
@@ -48,6 +53,8 @@ export default function Home() {
       fetchData(); // Fetch updated data after successful registration
     }
   };
+  // register/insert deta end
+  // teble/geting deta start
 
   const fetchData = () => {
     fetch("/getdata", {
@@ -55,7 +62,7 @@ export default function Home() {
     })
       .then((res) => res.json())
       .then((data) => {
-        setData(data.data); // Update the data state with the new data
+        setData(data.data);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -64,29 +71,101 @@ export default function Home() {
   useEffect(() => {
     fetchData();
   }, []);
-
+  // teble/geting deta end
+  // delete deta start
   const handleDelete = async (id) => {
     try {
       await fetch(`/delete/${id}`, {
         method: "DELETE",
       });
 
-      // If deletion is successful, fetch the updated data from the server
       fetchData();
+      window.alert("Data id Deleted");
     } catch (error) {
       console.error("Error deleting data:", error);
     }
   };
+  // delete deta end
+  //udating data start
+  const handleUpdateInput = (e) => {
+    const { name, value } = e.target;
+    setUpdate({ ...getUpdate, [name]: value });
+  };
+
+  const handleEdit = (item) => {
+    setUpdate({ ...item });
+    setEditItemId(item._id);
+    setIsEditModalVisible(true);
+  };
+
+  const handleUpdate = async () => {
+    try {
+      const res = await fetch(`/update/${editItemId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(getUpdate),
+      });
+
+      const dataUpdate = await res.json();
+
+      if (dataUpdate.error) {
+        window.alert(dataUpdate.error);
+      } else {
+        window.alert(dataUpdate.message);
+        setIsEditModalVisible(false);
+        fetchdataUpdate(); // Fetch the updated dataUpdate from the server
+        const updatedDataIndex = data.findIndex(
+          (item) => item._id === editItemId
+        );
+
+        if (updatedDataIndex !== -1) {
+          // Update the state with the updated data
+          setData((prevData) => {
+            const updatedData = [...prevData];
+            updatedData[updatedDataIndex] = {
+              ...updatedData[updatedDataIndex],
+              ...getUpdate,
+            };
+            return updatedData;
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error updating dataUpdate:", error);
+      window.alert("Failed to update dataUpdate. Please try again later.");
+    }
+  };
+
+  useEffect(() => {
+    fetchdataUpdate(); // Fetch initial dataUpdate from the server
+  }, []);
+
+  const fetchdataUpdate = async () => {
+    try {
+      const res = await fetch("/getdataUpdate", {
+        method: "GET",
+      });
+      const dataUpdate = await res.json();
+      setDataUpdate(dataUpdate.dataUpdate);
+    } catch (error) {
+      console.error("Error fetching dataUpdate:", error);
+    }
+  };
+  console.log(editItemId);
+  console.log("getUpdate", getUpdate);
+  //udating data end
   return (
     <div>
       <Container className="signup-container bg-secondary text-white">
         <Row className="vh-40 mt-5 d-flex justify-content-center align-items-center">
           <Col md={8} lg={6} xs={12}>
-            <Card className="px-4 signup-col bg-dark">
+            <Card className="px-4 signup-col bg-dark  text-white">
               <Card.Body>
-                <div className="mb-3 mt-md-4">
+                <div className="mb-5 mt-md-4">
                   <h2 className="fw-bold mb-2 text-center text-uppercase">
-                    Logo
+                    Registration Form
                   </h2>
                   <div className="mb-3">
                     <Form method="POST" id="register-form">
@@ -96,7 +175,7 @@ export default function Home() {
                         name="name"
                         id="name"
                         type="text"
-                        value={signUpUser.name}
+                        value={regUser.name}
                         onChange={handleInput}
                         placeholder="Enter Name"
                       />
@@ -106,7 +185,7 @@ export default function Home() {
                         name="phone"
                         id="phone"
                         type="number"
-                        value={signUpUser.phone}
+                        value={regUser.phone}
                         onChange={handleInput}
                         placeholder="Enter Phone No"
                       />
@@ -116,11 +195,11 @@ export default function Home() {
                         className="mb-3"
                         name="state"
                         id="state"
-                        value={signUpUser.state}
+                        value={regUser.state}
                         onChange={handleInput}
                       >
                         <option value="">Select State</option>
-                        {stateCityData.states.map((state, index) => (
+                        {StateCityData.states.map((state, index) => (
                           <option key={index} value={state.name}>
                             {state.name}
                           </option>
@@ -132,17 +211,17 @@ export default function Home() {
                         className="mb-3"
                         name="city"
                         id="city"
-                        value={signUpUser.city}
+                        value={regUser.city}
                         onChange={handleInput}
                       >
                         <option value="">Select City</option>
-                        {stateCityData.states
-                          .find((state) => state.name === signUpUser.state)
+                        {StateCityData.states
+                          .find((state) => state.name === regUser.state)
                           ?.cities.map((city, index) => (
                             <option key={index} value={city}>
                               {city}
                             </option>
-                          ))}
+                          ))}{" "}
                       </Form.Control>
                       {/*----Create Account Button---*/}
                       <Button
@@ -161,15 +240,15 @@ export default function Home() {
           </Col>
         </Row>
       </Container>
-      <table className="table">
+      <table className="table table-container">
         <thead>
           <tr>
             <th scope="col">count</th>
             <th scope="col">Name</th>
-            <th scope="col">Phone No</th>
+            <th scope="col">Mobile No</th>
             <th scope="col">City</th>
             <th scope="col">State</th>
-            <th scope="col">option</th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -183,6 +262,15 @@ export default function Home() {
                 <td>{item.state}</td>
                 <td>
                   <Button
+                    className="ml-1 "
+                    variant="info"
+                    onClick={() => handleEdit(item)}
+                  >
+                    Edit
+                  </Button>{" "}
+                  |{" "}
+                  <Button
+                    className="mr-1 "
                     variant="danger"
                     onClick={() => handleDelete(item._id)}
                   >
@@ -194,6 +282,83 @@ export default function Home() {
           })}
         </tbody>
       </table>
+      <Modal
+        show={isEditModalVisible}
+        onHide={() => setIsEditModalVisible(false)}
+      >
+        <Modal.Header closeButton>
+          <Modal.Title>Edit dataUpdate</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <Form>
+            <Form.Group controlId="formName">
+              <Form.Label>Name</Form.Label>
+              <Form.Control
+                name="name"
+                type="text"
+                value={getUpdate.name}
+                onChange={handleUpdateInput}
+              />
+            </Form.Group>
+            <Form.Group controlId="formPhone">
+              <Form.Label>Phone</Form.Label>
+              <Form.Control
+                name="phone"
+                type="text"
+                value={getUpdate.phone}
+                onChange={handleUpdateInput}
+              />
+            </Form.Group>
+            <Form.Group controlId="formState">
+              <Form.Label>State</Form.Label>
+              <Form.Control
+                as="select"
+                name="state"
+                value={getUpdate.state}
+                onChange={handleUpdateInput}
+              >
+                <option value="">Select a state</option>
+                {StateCityData.states.map((state) => (
+                  <option key={state.name} value={state.name}>
+                    {state.name}
+                  </option>
+                ))}
+              </Form.Control>
+            </Form.Group>
+            <Form.Group controlId="formCity">
+              <Form.Label>City</Form.Label>
+              <Form.Control
+                as="select"
+                name="city"
+                value={getUpdate.city}
+                onChange={handleUpdateInput}
+                disabled={!getUpdate.state} // Disable the city dropdown until a state is selected
+              >
+                <option value="">Select a city</option>
+                {getUpdate.state &&
+                  StateCityData.states
+                    .find((state) => state.name === getUpdate.state)
+                    .cities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+              </Form.Control>
+            </Form.Group>
+          </Form>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button
+            variant="secondary"
+            onClick={() => setIsEditModalVisible(false)}
+          >
+            Close
+          </Button>
+          <Button variant="primary" onClick={handleUpdate}>
+            Save Changes
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 }

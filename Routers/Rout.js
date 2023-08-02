@@ -37,6 +37,7 @@ router.post("/register", async (req, res) => {
   }
 });
 
+//--------------Get Api -------------------------//
 router.get("/getdata", async (req, res) => {
   try {
     const alldata = await User.find({});
@@ -45,19 +46,16 @@ router.get("/getdata", async (req, res) => {
     console.log(error);
   }
 });
-
+//--------------Delete Api -------------------------//
 router.delete("/delete/:id", async (req, res) => {
   const id = req.params.id;
 
   try {
-    // Convert the id to ObjectId format
     const objectIdId = new ObjectId(id);
     console.log(objectIdId);
-    // Find the document by ID and remove it
     const deletedData = await User.findOneAndDelete({ _id: objectIdId });
 
     if (!deletedData) {
-      // If the data with the specified ID is not found
       return res.status(404).json({ error: "Data not found" });
     }
 
@@ -65,6 +63,24 @@ router.delete("/delete/:id", async (req, res) => {
   } catch (error) {
     console.error("Error deleting data:", error);
     res.status(500).json({ error: "Failed to delete data" });
+  }
+});
+
+//--------------Update Api -------------------------//
+
+router.put("/update/:id", async (req, res) => {
+  try {
+    const _id = req.params.id;
+    const updateData = await User.findByIdAndUpdate(_id, req.body, {
+      new: true,
+    });
+    if (!updateData) {
+      return res.status(404).json({ error: "Data not found" });
+    }
+    res.json({ message: "Data updated successfully" });
+  } catch (error) {
+    console.error("Error updating data:", error);
+    res.status(500).json({ error: "Failed to update data" });
   }
 });
 

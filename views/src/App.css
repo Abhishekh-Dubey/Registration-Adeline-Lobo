@@ -1,5 +1,6 @@
 .App {
   text-align: center;
+  width: 100vw;
 }
 
 .App-logo {
@@ -38,8 +39,9 @@
 }
 .signup-container {
   max-width: 100% !important;
-  padding-top: 50px !important;
-  height: 92.5vh;
+  padding-top: 1px !important;
+  padding-bottom: 20px !important;
+  /* height: 80.5vh; */
   background: linear-gradient(
     to bottom right,
     paleturquoise 0%,
